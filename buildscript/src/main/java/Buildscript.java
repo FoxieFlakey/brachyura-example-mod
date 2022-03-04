@@ -16,38 +16,31 @@ import io.github.coolcrabs.brachyura.processing.ProcessorChain;
 import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.accesswidener.AccessWidenerVisitor;
 import net.fabricmc.mappingio.tree.MappingTree;
+import io.github.coolcrabs.brachyura.minecraft.Minecraft;
+import io.github.coolcrabs.brachyura.minecraft.VersionMeta;
 
 public class Buildscript extends SingleSrcDirFabricProject {
+  // Your mod version
+  @Override
+  public String getVersion() {
+    return "1.0.0";
+  }
+  
+  // Your mod ID
+  @Override
+  public String getModId() {
+    return "modid";
+  }
+  
   // Version which your mod targetting
   @Override
-  public String getMcVersion() {
-    return "1.18.1";
+  public VersionMeta createMcVersion() {
+    return Minecraft.getVersion("1.18.1");
   }
   
   // Release type for your mod (can be any string)
   public String getReleaseType() {
     return "dev";
-  }
-  
-  @Override
-  public MappingTree createMappings() {
-    // Mojmap
-    //return Mappings.createMojmap(Mappings.createIntermediary(this.getMcVersion()), this.getMcVersion());
-    
-    // Yarn
-    return Mappings.createYarn(this.getMcVersion() + "+build.7");
-  }
-  
-  // Select fabric loader which your mod uses
-  @Override
-  public FabricLoader getLoader() {
-    return new FabricLoader(FabricMaven.URL, FabricMaven.loader("0.12.12"));
-  }
-  
-  // Your mod version
-  @Override
-  public String getVersion() {
-    return "1.0.0";
   }
   
   @Override
@@ -58,6 +51,21 @@ public class Buildscript extends SingleSrcDirFabricProject {
     //           ModDependencyFlag.COMPILE, 
     //           ModDependencyFlag.RUNTIME);
     // ModDependencyFlag.JIJ is jar in jar
+  }
+  
+  // Select fabric loader which your mod uses
+  @Override
+  public FabricLoader getLoader() {
+    return new FabricLoader(FabricMaven.URL, FabricMaven.loader("0.12.12"));
+  }
+  
+  @Override
+  public MappingTree createMappings() {
+    // Mojmap (im not monster against mojmap so i provide option to use mojmap)
+    // return Mappings.createMojmap(Mappings.createIntermediary(this.createMcVersion().toString()), this.createMcVersion());
+    
+    // Yarn
+    return Mappings.createYarn(this.createMcVersion().version + "+build.7");
   }
   
   // The java version your mod be compiled with
@@ -73,6 +81,7 @@ public class Buildscript extends SingleSrcDirFabricProject {
   public List<String> getClientVMArgs() {
     List<String> args = new ArrayList<>();
     
+    // Basic args for 2 GB heap (modify as needed)
     // My args for 1 GB heap
     args.add("-XX:+IdleTuningGcOnIdle");
     args.add("-XX:+UseAggressiveHeapShrink");
@@ -113,38 +122,10 @@ public class Buildscript extends SingleSrcDirFabricProject {
   public List<String> getServerVMArgs() {
     List<String> args = new ArrayList<>();
     
-    // My args for 1 GB heap
-    args.add("-XX:+IdleTuningGcOnIdle");
-    args.add("-XX:+UseAggressiveHeapShrink");
-    args.add("-XX:-OmitStackTraceInFastThrow");
-    args.add("-XX:+UseFastAccessorMethods");
-    args.add("-XX:+OptimizeStringConcat");
-    args.add("-Xshareclasses:allowClasspaths");
-    args.add("-Xaot -XX:+UseCompressedOops");
-    args.add("-XX:ObjectAlignmentInBytes=256");
-    args.add("-Xshareclasses");
-    args.add("-XX:SharedCacheHardLimit=800M");
-    args.add("-Xscmx800M");
-    args.add("-Xtune:virtualized");
-    args.add("-XX:+TieredCompilation");
-    args.add("-XX:InitialTenuringThreshold=5");
-    args.add("-Dlog4j2.formatMsgNoLookups=true");
-    args.add("-XX:-DisableExplicitGC");
-    args.add("-XX:InitiatingHeapOccupancyPercent=35");
-    args.add("-XX:+UnlockExperimentalVMOptions");
-    args.add("-XX:+UseG1GC");
-    args.add("-XX:MaxGCPauseMillis=6");
-    args.add("-Djava.net.preferIPv4Stack=true");
-    args.add("-XX:-ParallelRefProcEnabled");
-    args.add("-XX:+UseTLAB");
-    args.add("-Xmn100M");
-    args.add("-Xmx1G");
-    args.add("-Xms101M");
-    args.add("-XX:ReservedCodeCacheSize=70M");
-    args.add("-XX:G1NewSizePercent=20");
-    args.add("-XX:G1ReservePercent=20");
-    args.add("-XX:ParallelGCThreads=2");
-    args.add("-XX:ConcGCThreads=1");
+    // Basic args for 2 GB heap (modify as needed)
+    args.add("-Xmn200M");
+    args.add("-Xmx2G");
+    args.add("-Xms201M"); 
     
     return args;
   }
@@ -164,9 +145,9 @@ public class Buildscript extends SingleSrcDirFabricProject {
           Namespaces.NAMED
         );
       } catch (IOException e) {
-        // Assuming NoSuchFileException mea the writer dont need AW
+        // Assuming NoSuchFileException mean the writer dont use AW
         if (e instanceof NoSuchFileException) {
-          Logger.warn(String.format("Can't find accesswidener at %s (assumming you dont use access wideners or ignore if you dont know what access widener is)", path.toString()));
+          Logger.warn(String.format("Can't find accesswidener at %s (assumming you dont use access wideners or ignore this if you dont know what access widener is)", path.toString()));
         } else {
           throw new UncheckedIOException(e);
         }
